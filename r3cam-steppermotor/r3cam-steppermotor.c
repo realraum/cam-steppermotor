@@ -79,7 +79,7 @@ void EVENT_USB_Device_ControlRequest(void)
 #define M_CLK 1
 #define M_ENABLE 2
 #define M_RESET 3
-#define M_HALFSTEPS 4
+#define M_FULLSTEPS 4
 
 static uint8_t m_clk_divisor_ = 0;
 static uint8_t m_clk_divisor_counter_ = 0;
@@ -144,7 +144,7 @@ void motor_run(uint16_t steps, uint8_t direction)
 void init_pins()
 {
     M_DDR = 0x0F;
-    M_PORT = 0 | (1 << M_RESET);
+    M_PORT = (1 << M_RESET) | (1 << M_FULLSTEPS);
     
     // Configure timer 0 to generate a timer overflow interrupt every
     // 560us (NEC Protocol)
