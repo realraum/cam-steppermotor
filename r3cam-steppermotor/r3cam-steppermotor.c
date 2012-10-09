@@ -81,7 +81,10 @@ void EVENT_USB_Device_ControlRequest(void)
 #define M_RESET 3
 #define M_FULLSTEPS 4
 
-static uint8_t m_clk_divisor_ = 0;
+#define M_START_DIVISOR 2;
+
+static uint8_t cur_speed = 0xFF - M_START_DIVISOR;
+static uint8_t m_clk_divisor_ = M_START_DIVISOR;
 static uint8_t m_clk_divisor_counter_ = 0;
 static uint16_t m_steps_to_go_ = 0;
 
@@ -116,10 +119,14 @@ ISR(TIMER0_OVF_vect)
         m_clk_divisor_counter_--;
 }
 
+static char set_speed_msg[] = "m_clk_divisor_ = %d\n\r";
+
 void motor_set_speed(uint8_t speed)
 {
     m_clk_divisor_ = 0xFF - speed;
-    CDC_Device_SendString(&VirtualSerial_CDC_Interface, "m_clk_divisor_ = %d\n",m_clk_divisor_);
+    char tmp[sizeof(set_speed_msg)+4];
+    sprintf(tmp, set_speed_msg,m_clk_divisor_);
+    CDC_Device_SendString(&VirtualSerial_CDC_Interface, tmp);
 }
 
 void motor_run(uint16_t steps, uint8_t direction)
@@ -157,7 +164,6 @@ void init_pins()
     OCR0A = 255;        // (1+139)*8 = 1120 -> 70us @ 16 MHz -> 1*alpha
 }
 
-uint8_t cur_speed = 0xFF;
 void handle_cmd(uint8_t cmd)
 {
   switch(cmd) {
@@ -172,9 +178,9 @@ void handle_cmd(uint8_t cmd)
   case 'W': motor_run(300,1); break;
   case '+': motor_set_speed(++cur_speed); break;
   case '-': motor_set_speed(--cur_speed); break;
-  default: CDC_Device_SendString(&VirtualSerial_CDC_Interface, "error\n"); return;
+  default: CDC_Device_SendString(&VirtualSerial_CDC_Interface, "error\n\r"); return;
   }
-  CDC_Device_SendString(&VirtualSerial_CDC_Interface, "ok\n");
+  CDC_Device_SendString(&VirtualSerial_CDC_Interface, "ok\n\r");
 }
 
 
