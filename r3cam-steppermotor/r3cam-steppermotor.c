@@ -119,6 +119,7 @@ ISR(TIMER0_OVF_vect)
 void motor_set_speed(uint8_t speed)
 {
     m_clk_divisor_ = 0xFF - speed;
+    CDC_Device_SendString(&VirtualSerial_CDC_Interface, "m_clk_divisor_ = %d\n",m_clk_divisor_);
 }
 
 void motor_run(uint16_t steps, uint8_t direction)
@@ -165,10 +166,10 @@ void handle_cmd(uint8_t cmd)
   case 't': led_toggle(); break;
   case 'r': reset2bootloader(); break;
   case 's': motor_stop(); break;
-  case 'c': motor_run(300,0); break;
-  case 'w': motor_run(300,1); break;
-  case 'C': motor_run(1000,0); break;
-  case 'W': motor_run(1000,1); break;
+  case 'c': motor_run(50,0); break;
+  case 'w': motor_run(50,1); break;
+  case 'C': motor_run(300,0); break;
+  case 'W': motor_run(300,1); break;
   case '+': motor_set_speed(++cur_speed); break;
   case '-': motor_set_speed(--cur_speed); break;
   default: CDC_Device_SendString(&VirtualSerial_CDC_Interface, "error\n"); return;
