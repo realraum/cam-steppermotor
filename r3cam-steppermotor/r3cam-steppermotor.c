@@ -87,6 +87,7 @@ static uint8_t cur_speed = 0xFF - M_START_DIVISOR;
 static uint8_t m_clk_divisor_ = M_START_DIVISOR;
 static uint8_t m_clk_divisor_counter_ = 0;
 static uint16_t m_steps_to_go_ = 0;
+static uint16_t m_steps_to_go_back_ = 0;
 
 inline void m_timer_enable(void)
 {
@@ -103,12 +104,21 @@ void motor_stop(void)
     m_timer_disable();
     M_PORT &= ~(1 << M_ENABLE);
     m_steps_to_go_ = 0;
+    m_steps_to_go_back_ = 0;
 }
 
 ISR(TIMER0_OVF_vect)
 {
     if (m_steps_to_go_ == 0)
-        motor_stop();
+    {
+        if(m_steps_to_go_back_)
+        {  
+          M_PORT ^= (1 << M_DIRECTION);
+          m_steps_to_go_=m_steps_to_go_back_;
+          m_steps_to_go_back_=0;
+        } else   
+          motor_stop();
+    }    
     if (m_clk_divisor_counter_ == 0)
     {
         m_clk_divisor_counter_ = m_clk_divisor_;
@@ -129,7 +139,7 @@ void motor_set_speed(uint8_t speed)
     CDC_Device_SendString(&VirtualSerial_CDC_Interface, tmp);
 }
 
-void motor_run(uint16_t steps, uint8_t direction)
+void motor_run(uint16_t steps, uint8_t direction,uint16_t steps_back)
 {
     //reset by pulling reset low for 100ms
     M_PORT &= ~(1 << M_RESET);
@@ -138,6 +148,7 @@ void motor_run(uint16_t steps, uint8_t direction)
     
     m_clk_divisor_counter_ = 0;
     m_steps_to_go_ = steps;
+    m_steps_to_go_back_ = steps_back;
     
     if (direction)
         M_PORT |= (1 << M_DIRECTION);
@@ -172,10 +183,15 @@ void handle_cmd(uint8_t cmd)
   case 't': led_toggle(); break;
   case 'r': reset2bootloader(); break;
   case 's': motor_stop(); break;
-  case 'c': motor_run(50,0); break;
-  case 'w': motor_run(50,1); break;
-  case 'C': motor_run(300,0); break;
-  case 'W': motor_run(300,1); break;
+  case 'y': motor_run(30,0,20); break;
+  case 'x': motor_run(140,0,40); break;
+  case 'c': motor_run(60,0,20); break;
+  case 'v': motor_run(40,0,20); break;
+  case 'q': motor_run(140,1,40); break;
+  case 'w': motor_run(60,1,20); break;
+  case 'e': motor_run(40,1,20); break;
+  case 'C': motor_run(330,0,40); break;
+  case 'W': motor_run(330,1,40); break;
   case '+': motor_set_speed(++cur_speed); break;
   case '-': motor_set_speed(--cur_speed); break;
   default: CDC_Device_SendString(&VirtualSerial_CDC_Interface, "error\n\r"); return;
