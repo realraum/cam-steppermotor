@@ -109,16 +109,16 @@ void motor_stop(void)
 
 ISR(TIMER0_OVF_vect)
 {
-    if (m_steps_to_go_ == 0)
-    {
-        if(m_steps_to_go_back_)
-        {  
-          M_PORT ^= (1 << M_DIRECTION);
-          m_steps_to_go_=m_steps_to_go_back_;
-          m_steps_to_go_back_=0;
-        } else   
-          motor_stop();
-    }    
+    //if (m_steps_to_go_ == 0)
+    //{
+        //if(m_steps_to_go_back_)
+        //{  
+    //      M_PORT ^= (1 << M_DIRECTION);
+    //      m_steps_to_go_=m_steps_to_go_back_;
+          //m_steps_to_go_back_=0;
+        //} else   
+        //  motor_stop();
+    //}    
     if (m_clk_divisor_counter_ == 0)
     {
         m_clk_divisor_counter_ = m_clk_divisor_;
@@ -184,14 +184,14 @@ void handle_cmd(uint8_t cmd)
   case 'r': reset2bootloader(); break;
   case 's': motor_stop(); break;
   case 'y': motor_run(30,0,20); break;
-  case 'x': motor_run(140,0,40); break;
-  case 'c': motor_run(60,0,20); break;
-  case 'v': motor_run(40,0,20); break;
-  case 'q': motor_run(140,1,40); break;
-  case 'w': motor_run(60,1,20); break;
-  case 'e': motor_run(40,1,20); break;
-  case 'C': motor_run(330,0,40); break;
-  case 'W': motor_run(330,1,40); break;
+  //case 'x': motor_run(140,0,40); break;
+  //case 'c': motor_run(60,0,20); break;
+  //case 'v': motor_run(40,0,20); break;
+  //case 'q': motor_run(140,1,40); break;
+  //case 'w': motor_run(60,1,20); break;
+  //case 'e': motor_run(40,1,20); break;
+  //case 'C': motor_run(330,0,40); break;
+  //case 'W': motor_run(330,1,40); break;
   case '+': motor_set_speed(++cur_speed); break;
   case '-': motor_set_speed(--cur_speed); break;
   default: CDC_Device_SendString(&VirtualSerial_CDC_Interface, "error\n\r"); return;
