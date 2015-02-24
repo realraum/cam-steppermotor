@@ -27,8 +27,9 @@ BOARD_TYPE := minimus32
 OBJ := $(NAME).o
 LIBS := util led lufa-descriptor-usbserial usbio
 EXTERNAL_LIBS := lufa
+SPREADAVR_PATH := ..
 
-LUFA_PATH := ../contrib/LUFA-120219
+LUFA_PATH := $(SPREADAVR_PATH)/contrib/LUFA-120219
 LUFA_OPTS  = -D USB_DEVICE_ONLY
 LUFA_OPTS += -D DEVICE_STATE_AS_GPIOR=0
 LUFA_OPTS += -D ORDERED_EP_CONFIG
@@ -43,4 +44,4 @@ LUFA_OPTS += -D USB_PRODUCT="L\"realraum cam-steppermotor\"" -D USB_PRODUCT_LEN=
 
 LUFA_COMPONENTS := USB USBCLASS
 
-include ../include.mk
+include $(SPREADAVR_PATH)/include.mk
