@@ -2,7 +2,9 @@
  *  spreadspace avr utils
  *
  *
- *  Copyright (C) 2012 Christian Pointner <equinox@spreadspace.org>
+ *  Copyright (C) 2012 Bernhard Tittelbach <xro@realraum.at>
+ *                2012 Othmar Gsenger <otti@realraum.at>
+ *                2015 Christian Pointner <equinox@spreadspace.org>
  *
  *  This file is part of spreadspace avr utils.
  *
@@ -25,51 +27,12 @@
 #include <avr/wdt.h>
 #include <avr/interrupt.h>
 #include <avr/power.h>
+#include <util/delay.h>
+#include <stdio.h>
 
 #include "util.h"
 #include "led.h"
-
-/*
-             LUFA Library
-     Copyright (C) Dean Camera, 2012.
-
-  dean [at] fourwalledcubicle [dot] com
-           www.lufa-lib.org
-*/
-#include <LUFA/Drivers/USB/USB.h>
-#include "lufa-descriptor-usbserial.h"
-
-USB_ClassInfo_CDC_Device_t VirtualSerial_CDC_Interface =
-  {
-    .Config =
-      {
-        .ControlInterfaceNumber         = 0,
-
-        .DataINEndpointNumber           = CDC_TX_EPNUM,
-        .DataINEndpointSize             = CDC_TXRX_EPSIZE,
-        .DataINEndpointDoubleBank       = false,
-
-        .DataOUTEndpointNumber          = CDC_RX_EPNUM,
-        .DataOUTEndpointSize            = CDC_TXRX_EPSIZE,
-        .DataOUTEndpointDoubleBank      = false,
-
-        .NotificationEndpointNumber     = CDC_NOTIFICATION_EPNUM,
-        .NotificationEndpointSize       = CDC_NOTIFICATION_EPSIZE,
-        .NotificationEndpointDoubleBank = false,
-      },
-  };
-
-void EVENT_USB_Device_ConfigurationChanged(void)
-{
-  CDC_Device_ConfigureEndpoints(&VirtualSerial_CDC_Interface);
-}
-
-void EVENT_USB_Device_ControlRequest(void)
-{
-  CDC_Device_ProcessControlRequest(&VirtualSerial_CDC_Interface);
-}
-/* end LUFA CDC-ACM specific definitions*/
-
+#include "usbio.h"
 
 /* Start Our Code */
 
@@ -91,88 +54,84 @@ static uint16_t m_steps_to_go_back_ = 0;
 
 inline void m_timer_enable(void)
 {
-    TIMSK0 |= (1<<TOIE0);    
+  TIMSK0 |= (1<<TOIE0);
 }
 
 inline void m_timer_disable(void)
 {
-    TIMSK0 &= ~(1<<TOIE0);    
+  TIMSK0 &= ~(1<<TOIE0);
 }
 
 void motor_stop(void)
 {
-    m_timer_disable();
-    M_PORT &= ~(1 << M_ENABLE);
-    m_steps_to_go_ = 0;
-    m_steps_to_go_back_ = 0;
+  m_timer_disable();
+  M_PORT &= ~(1 << M_ENABLE);
+  m_steps_to_go_ = 0;
+  m_steps_to_go_back_ = 0;
 }
 
 ISR(TIMER0_OVF_vect)
 {
-    //if (m_steps_to_go_ == 0)
-    //{
-        //if(m_steps_to_go_back_)
-        //{  
-    //      M_PORT ^= (1 << M_DIRECTION);
-    //      m_steps_to_go_=m_steps_to_go_back_;
-          //m_steps_to_go_back_=0;
-        //} else   
-        //  motor_stop();
-    //}    
-    if (m_clk_divisor_counter_ == 0)
-    {
-        m_clk_divisor_counter_ = m_clk_divisor_;
-        M_PORT ^=  (1 << M_CLK);
-        m_steps_to_go_--;
-    }
-    else 
-        m_clk_divisor_counter_--;
+  //if (m_steps_to_go_ == 0)
+  //{
+      //if(m_steps_to_go_back_)
+      //{
+  //      M_PORT ^= (1 << M_DIRECTION);
+  //      m_steps_to_go_=m_steps_to_go_back_;
+        //m_steps_to_go_back_=0;
+      //} else
+      //  motor_stop();
+  //}
+  if (m_clk_divisor_counter_ == 0)
+  {
+    m_clk_divisor_counter_ = m_clk_divisor_;
+    M_PORT ^=  (1 << M_CLK);
+    m_steps_to_go_--;
+  }
+  else
+    m_clk_divisor_counter_--;
 }
-
-static char set_speed_msg[] = "m_clk_divisor_ = %d\n\r";
 
 void motor_set_speed(uint8_t speed)
 {
-    m_clk_divisor_ = 0xFF - speed;
-    char tmp[sizeof(set_speed_msg)+4];
-    sprintf(tmp, set_speed_msg,m_clk_divisor_);
-    CDC_Device_SendString(&VirtualSerial_CDC_Interface, tmp);
+  m_clk_divisor_ = 0xFF - speed;
+  printf("m_clk_divisor_ = %d\n\r", m_clk_divisor_);
 }
 
 void motor_run(uint16_t steps, uint8_t direction,uint16_t steps_back)
 {
-    //reset by pulling reset low for 100ms
-    M_PORT &= ~(1 << M_RESET);
-    _delay_ms(100);
-    M_PORT |= (1 << M_RESET);
-    
-    m_clk_divisor_counter_ = 0;
-    m_steps_to_go_ = steps;
-    m_steps_to_go_back_ = steps_back;
-    
-    if (direction)
-        M_PORT |= (1 << M_DIRECTION);
-    else
-        M_PORT &= ~(1 << M_DIRECTION);
-    
-    //enable motor
-    M_PORT |= (1 << M_ENABLE);
-    m_timer_enable();    
+  //reset by pulling reset low for 100ms
+  M_PORT &= ~(1 << M_RESET);
+  _delay_ms(100);
+  M_PORT |= (1 << M_RESET);
+
+  m_clk_divisor_counter_ = 0;
+  m_steps_to_go_ = steps;
+  m_steps_to_go_back_ = steps_back;
+
+  if (direction)
+      M_PORT |= (1 << M_DIRECTION);
+  else
+      M_PORT &= ~(1 << M_DIRECTION);
+
+  //enable motor
+  M_PORT |= (1 << M_ENABLE);
+  m_timer_enable();
 }
 
-void init_pins()
+void init_pins(void)
 {
-    M_DDR = 0x0F;
-    M_PORT = (1 << M_RESET) | (1 << M_FULLSTEPS);
-    
-    // Configure timer 0 to generate a timer overflow interrupt every
-    // 560us (NEC Protocol)
-    TCCR0A = 0x00;
-    TIMSK0 = (0<<TOIE0);
-    //TCCR0B = 1<<WGM02 | 1<<CS02 | 0<<CS01| 1<<CS00;   //Teiler 1024
-    TCCR0B = 1<<WGM02 | 1<<CS02 | 0<<CS01| 0<<CS00;   //Teiler 256
-    //OCR0A = 139;        // (1+139)*8 = 1120 -> 70us @ 16 MHz -> 1*alpha
-    OCR0A = 255;        // (1+139)*8 = 1120 -> 70us @ 16 MHz -> 1*alpha
+  M_DDR = 0x0F;
+  M_PORT = (1 << M_RESET) | (1 << M_FULLSTEPS);
+
+  // Configure timer 0 to generate a timer overflow interrupt every
+  // 560us (NEC Protocol)
+  TCCR0A = 0x00;
+  TIMSK0 = (0<<TOIE0);
+  //TCCR0B = 1<<WGM02 | 1<<CS02 | 0<<CS01| 1<<CS00;   //Teiler 1024
+  TCCR0B = 1<<WGM02 | 1<<CS02 | 0<<CS01| 0<<CS00;   //Teiler 256
+  //OCR0A = 139;        // (1+139)*8 = 1120 -> 70us @ 16 MHz -> 1*alpha
+  OCR0A = 255;        // (1+139)*8 = 1120 -> 70us @ 16 MHz -> 1*alpha
 }
 
 void handle_cmd(uint8_t cmd)
@@ -194,12 +153,10 @@ void handle_cmd(uint8_t cmd)
   //case 'W': motor_run(330,1,40); break;
   case '+': motor_set_speed(++cur_speed); break;
   case '-': motor_set_speed(--cur_speed); break;
-  default: CDC_Device_SendString(&VirtualSerial_CDC_Interface, "error\n\r"); return;
+  default: printf("error\r\n"); return;
   }
-  CDC_Device_SendString(&VirtualSerial_CDC_Interface, "ok\n\r");
+  printf("ok\r\n");
 }
-
-
 
 int main(void)
 {
@@ -208,21 +165,20 @@ int main(void)
 
   cpu_init();
   led_init();
-  USB_Init();
+  usbio_init();
   init_pins();
   sei();
 
   for(;;) {
-    int16_t BytesReceived = CDC_Device_BytesReceived(&VirtualSerial_CDC_Interface);
+    int16_t BytesReceived = usbio_bytes_received();
     while(BytesReceived > 0) {
-      int16_t ReceivedByte = CDC_Device_ReceiveByte(&VirtualSerial_CDC_Interface);
-      if(!(ReceivedByte < 0)) {
+      int ReceivedByte = fgetc(stdin);
+      if(ReceivedByte != EOF) {
         handle_cmd(ReceivedByte);
       }
       BytesReceived--;
     }
 
-    CDC_Device_USBTask(&VirtualSerial_CDC_Interface);
-    USB_USBTask();
+    usbio_task();
   }
 }

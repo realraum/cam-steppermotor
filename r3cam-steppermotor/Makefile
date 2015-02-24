@@ -2,7 +2,9 @@
 ##  spreadspace avr utils
 ##
 ##
-##  Copyright (C) 2012 Christian Pointner <equinox@spreadspace.org>
+##  Copyright (C) 2012 Bernhard Tittelbach <xro@realraum.at>
+##                2012 Othmar Gsenger <otti@realraum.at>
+##                2015 Christian Pointner <equinox@spreadspace.org>
 ##
 ##  This file is part of spreadspace avr utils.
 ##
@@ -23,7 +25,7 @@
 NAME := r3cam-steppermotor
 BOARD_TYPE := minimus32
 OBJ := $(NAME).o
-LIBS := util led lufa-descriptor-usbserial
+LIBS := util led lufa-descriptor-usbserial usbio
 EXTERNAL_LIBS := lufa
 
 LUFA_PATH := ../contrib/LUFA-120219
@@ -36,7 +38,9 @@ LUFA_OPTS += -D USE_FLASH_DESCRIPTORS
 LUFA_OPTS += -D USE_STATIC_OPTIONS="(USB_DEVICE_OPT_FULLSPEED | USB_OPT_REG_ENABLED | USB_OPT_AUTO_PLL)"
 LUFA_OPTS += -D INTERRUPT_CONTROL_ENDPOINT
 
-LUFA_OPTS += -D USB_MANUFACTURER="L\"equinox\""
-LUFA_OPTS += -D USB_PRODUCT="L\"$(NAME)\""
+LUFA_OPTS += -D USB_MANUFACTURER="L\"realraum\"" -D USB_MANUFACTURER_LEN=8
+LUFA_OPTS += -D USB_PRODUCT="L\"realraum cam-steppermotor\"" -D USB_PRODUCT_LEN=25
+
+LUFA_COMPONENTS := USB USBCLASS
 
 include ../include.mk
