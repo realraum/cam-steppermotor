@@ -1,0 +1,8 @@
+contrib/avr-utils
+contrib/.spreadavr.prepared
+*/*.a
+*/*.o
+*/*.d
+*/*.d.*
+*/*.hex
+*/*.elf

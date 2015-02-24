@@ -1,0 +1,29 @@
+Dependencies
+============
+
+spreadspace avr utils (and everything these depend on)
+
+
+Build
+=====
+
+Getting the source via GIT:
+---------------------------
+
+git clone https://github.com/realraum/cam-steppermotor.git
+cd cam-steppermotor
+make -C contrib/
+
+The last step can also be done manually:
+
+# checkout avr-utils from git:
+
+cd contrib
+git clone git://git.spreadspace.org/avr-utils.git
+cd ..
+
+# or just add a link to a local copy of the uitls
+
+cd contrib
+ln -s /path/to/local/copy/of/avrutils/ avr-utils
+cd ..
