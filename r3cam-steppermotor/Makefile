@@ -1,25 +1,25 @@
 ##
-##  spreadspace avr utils
+##  cam-steppermotor
 ##
 ##
 ##  Copyright (C) 2012 Bernhard Tittelbach <xro@realraum.at>
 ##                2012 Othmar Gsenger <otti@realraum.at>
 ##                2015 Christian Pointner <equinox@spreadspace.org>
 ##
-##  This file is part of spreadspace avr utils.
+##  This file is part of cam-steppermotor.
 ##
-##  spreadspace avr utils is free software: you can redistribute it and/or modify
+##  cam-steppermotor is free software: you can redistribute it and/or modify
 ##  it under the terms of the GNU General Public License as published by
 ##  the Free Software Foundation, either version 3 of the License, or
 ##  any later version.
 ##
-##  spreadspace avr utils is distributed in the hope that it will be useful,
+##  cam-steppermotor is distributed in the hope that it will be useful,
 ##  but WITHOUT ANY WARRANTY; without even the implied warranty of
 ##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ##  GNU General Public License for more details.
 ##
 ##  You should have received a copy of the GNU General Public License
-##  along with spreadspace avr utils. If not, see <http://www.gnu.org/licenses/>.
+##  along with cam-steppermotor. If not, see <http://www.gnu.org/licenses/>.
 ##
 
 NAME := r3cam-steppermotor
@@ -27,7 +27,7 @@ BOARD_TYPE := minimus32
 OBJ := $(NAME).o
 LIBS := util led lufa-descriptor-usbserial usbio
 EXTERNAL_LIBS := lufa
-SPREADAVR_PATH := ..
+SPREADAVR_PATH := ../contrib/avr-utils
 
 LUFA_PATH := $(SPREADAVR_PATH)/contrib/LUFA-120219
 LUFA_OPTS  = -D USB_DEVICE_ONLY
