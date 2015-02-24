@@ -22,7 +22,7 @@
 ##  along with cam-steppermotor. If not, see <http://www.gnu.org/licenses/>.
 ##
 
-NAME := r3cam-steppermotor
+NAME := cam-steppermotor
 BOARD_TYPE := minimus32
 OBJ := $(NAME).o
 LIBS := util led lufa-descriptor-usbserial usbio
